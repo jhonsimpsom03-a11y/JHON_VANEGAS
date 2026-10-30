@@ -54,3 +54,54 @@ Abre `http://localhost:8080`.
 
 ## Versionamiento
 El repositorio remoto del proyecto está indicado en el archivo `REPOSITORIO.txt`, ubicado en la raíz de la entrega.
+
+
+## Servicio web de autenticación (AA5-EV01)
+
+Se incorporó una API REST para registrar usuarios e iniciar sesión.
+
+### Preparar la tabla de autenticación
+Ejecuta nuevamente el bloque `CREATE TABLE IF NOT EXISTS usuarios_app` incluido al final de `tienda_celulares.sql`, o ejecuta ese bloque directamente en MariaDB. No elimina ni modifica las tablas existentes.
+
+### Endpoints
+- `POST /api/auth/register`: registra un usuario.
+- `POST /api/auth/login`: verifica las credenciales.
+
+Ambos endpoints reciben JSON con esta estructura:
+
+```json
+{
+  "usuario": "aprendiz01",
+  "contraseña": "clave123"
+}
+```
+
+### Respuestas esperadas
+- Registro correcto: HTTP 201 y mensaje `Usuario registrado correctamente`.
+- Inicio de sesión correcto: HTTP 200 y mensaje `Autenticación satisfactoria`.
+- Credenciales incorrectas: HTTP 401 y mensaje `Error en la autenticación`.
+- Usuario repetido: HTTP 409.
+
+Las contraseñas se almacenan como hash BCrypt mediante `spring-security-crypto`; nunca se guardan en texto plano.
+
+### Pruebas con PowerShell
+Con la aplicación ejecutándose en `http://localhost:8080`:
+
+```powershell
+$registro = @{
+    usuario = "aprendiz01"
+    contraseña = "clave123"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Method Post -Uri "http://localhost:8080/api/auth/register" -ContentType "application/json" -Body $registro
+
+$login = @{
+    usuario = "aprendiz01"
+    contraseña = "clave123"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Method Post -Uri "http://localhost:8080/api/auth/login" -ContentType "application/json" -Body $login
+```
+
+Para comprobar el rechazo de una contraseña incorrecta, cambia `clave123` por otra contraseña en la solicitud de inicio de sesión; la API debe responder HTTP 401.
+
