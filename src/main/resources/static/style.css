@@ -1,15 +1,22 @@
+/*
+ * Hoja de estilos principal del sistema de gestión de tienda de celulares.
+ * Define la presentación compartida y adapta la navegación a pantallas pequeñas.
+ */
+
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
+/* Estilos generales de tipografía, fondo y color de texto. */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f6f8;
     color: #222;
 }
 
+/* Encabezado y navegación principal. */
 header {
     background-color: #1f2937;
     color: white;
@@ -39,6 +46,7 @@ nav a:hover {
     text-decoration: underline;
 }
 
+/* Contenedor central del contenido. */
 main {
     max-width: 1100px;
     margin: 40px auto;
@@ -57,6 +65,7 @@ main {
     margin-bottom: 15px;
 }
 
+/* Distribución de tarjetas para módulos y registros. */
 .tarjetas {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -100,6 +109,7 @@ footer {
     color: white;
 }
 
+/* Ajustes para tabletas y teléfonos. */
 @media (max-width: 768px) {
 
     nav {
@@ -116,6 +126,7 @@ footer {
         font-size: 24px;
     }
 }
+/* Formularios de registro y edición. */
 .formulario {
     background-color: white;
     max-width: 600px;

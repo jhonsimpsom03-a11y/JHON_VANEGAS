@@ -1,5 +1,11 @@
+// URL base de los servicios REST publicados por Spring Boot.
 const API = "/api";
 
+/**
+ * Ejecuta una solicitud HTTP contra la API y normaliza su respuesta.
+ * Si el servidor responde con un estado de error, genera una excepción
+ * para que cada formulario pueda mostrar un mensaje comprensible.
+ */
 async function solicitud(ruta, opciones = {}) {
     const respuesta = await fetch(`${API}${ruta}`, {
         headers: { "Content-Type": "application/json" },
@@ -14,12 +20,15 @@ async function solicitud(ruta, opciones = {}) {
     return datos;
 }
 
+// Convierte los valores recibidos del servidor en texto seguro antes de
+// insertarlos en las tarjetas HTML, evitando interpretar etiquetas ingresadas.
 function textoSeguro(valor) {
     return String(valor ?? "").replace(/[&<>"']/g, c => ({
         "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
     }[c]));
 }
 
+// Presenta los valores monetarios usando el formato colombiano (COP).
 function moneda(valor) {
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(Number(valor || 0));
 }
@@ -28,7 +37,10 @@ function mostrarError(elemento, error) {
     if (elemento) elemento.textContent = error.message || "Ocurrió un error.";
 }
 
-// CLIENTES: listar, insertar, actualizar y eliminar
+// -----------------------------------------------------------------------------
+// MÓDULO DE CLIENTES
+// Permite consultar, registrar, editar y eliminar clientes mediante la API REST.
+// -----------------------------------------------------------------------------
 const formCliente = document.getElementById("formCliente");
 if (formCliente) {
     const mensaje = document.getElementById("mensaje");
@@ -36,6 +48,7 @@ if (formCliente) {
     const cancelar = document.getElementById("cancelarEdicionCliente");
     let clientes = [];
 
+    // Consulta la lista actualizada y construye una tarjeta por cada cliente.
     async function cargarClientes() {
         try {
             clientes = await solicitud("/clientes");
@@ -45,15 +58,16 @@ if (formCliente) {
                 <p>Dirección: ${textoSeguro(c.direccion)}</p><p>ID: ${c.id_cliente}</p>
                 <div class="acciones"><button type="button" data-editar-cliente="${c.id_cliente}">Editar</button><button class="eliminar" type="button" data-eliminar-cliente="${c.id_cliente}">Eliminar</button></div>
               </article>`).join("") || "<p>No hay clientes registrados.</p>";
-            cargarOpcionesClientes();
         } catch (e) { lista.textContent = "No se pudieron cargar los clientes: " + e.message; }
     }
+    // Restablece el formulario y devuelve la pantalla al modo de registro.
     function limpiarCliente() {
         formCliente.reset(); document.getElementById("idCliente").value = "";
         document.getElementById("tituloFormularioCliente").textContent = "Registrar cliente";
         document.getElementById("botonCliente").textContent = "Registrar cliente";
         cancelar.hidden = true;
     }
+    // El mismo formulario se utiliza para crear (POST) o actualizar (PUT).
     formCliente.addEventListener("submit", async e => {
         e.preventDefault(); mensaje.textContent = "";
         const id = document.getElementById("idCliente").value;
@@ -86,16 +100,19 @@ if (formCliente) {
             catch (err) { mostrarError(mensaje, err); }
         }
     });
-    window.cargarOpcionesClientes = async function() {};
     cargarClientes();
 }
 
-// PRODUCTOS: CRUD completo
+// -----------------------------------------------------------------------------
+// MÓDULO DE PRODUCTOS
+// Administra el catálogo y el inventario: consulta, registro, edición y borrado.
+// -----------------------------------------------------------------------------
 const formProducto = document.getElementById("formProducto");
 if (formProducto) {
     const mensaje = document.getElementById("mensajeProducto"), lista = document.getElementById("listaProductos");
     const cancelar = document.getElementById("cancelarEdicionProducto");
     let productos = [];
+    // Obtiene los productos y actualiza las tarjetas del inventario.
     async function cargarProductos() {
         try {
             productos = await solicitud("/productos");
@@ -137,16 +154,22 @@ if (formProducto) {
     cargarProductos();
 }
 
-// VENTAS: CRUD sobre cabecera de venta; los detalles existentes se conservan al editar.
+// -----------------------------------------------------------------------------
+// MÓDULO DE VENTAS
+// Gestiona la cabecera de las ventas. Al editarla, los detalles asociados se
+// conservan de acuerdo con el comportamiento implementado en el backend.
+// -----------------------------------------------------------------------------
 const formVenta = document.getElementById("formVenta");
 if (formVenta) {
     const mensaje=document.getElementById("mensajeVenta"), lista=document.getElementById("listaVentas"), selector=document.getElementById("idClienteVenta");
     const cancelar=document.getElementById("cancelarEdicionVenta");
     let ventas=[];
+    // Carga los clientes para relacionar cada venta con un cliente existente.
     async function cargarSelectorClientes() {
         const cs=await solicitud("/clientes");
         selector.innerHTML='<option value="">Seleccione un cliente</option>'+cs.map(c=>`<option value="${c.id_cliente}">${textoSeguro(c.nombre)} (ID ${c.id_cliente})</option>`).join("");
     }
+    // Consulta el historial y muestra cliente, fecha y total de cada venta.
     async function cargarVentas() {
         try {
             ventas=await solicitud("/ventas");
