@@ -4,3 +4,14 @@ target/
 .vscode/
 .env
 application-local.properties
+
+# Android Studio
+.gradle/
+local.properties
+.cxx/
+.externalNativeBuild/
+captures/
+build/
+app/build/
+*.apk
+*.aab
